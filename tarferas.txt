@@ -1,4 +1,5 @@
-1. [] - Pegar dados e tratar para gerar grafos
+1. [X] - Pegar dados e tratar para gerar grafos
+1.1 [] - carregar intancias
 2. [] - metodo guloso para gerar solucao inicial\
 3. [] - vnd 
 4. [] - ils
