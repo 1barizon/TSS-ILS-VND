@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Ambientes Virtuais
+venv/
+.env
+
+# IDEs
+.vscode/
+.idea/
+
+# Dados e Resultados (Opcional: Se os arquivos forem gigantes, não suba)
+results/logs/
+data/instances/*.large_graph

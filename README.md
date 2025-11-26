@@ -1,3 +1,2 @@
-# Aplição da meta heuristica Iterated Local Search (ILS) e Variable Neighborhood Descending (VND) ao problema TSS
-
+#Aplicação da Meta-heurística ILS com VND ao Problema Target Set Selection
 
