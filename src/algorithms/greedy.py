@@ -1,9 +1,4 @@
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.graph import GraphInstance
-import networkx as nx
-from typing import Set, List
 import random
 
 
