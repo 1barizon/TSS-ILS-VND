@@ -15,8 +15,6 @@ class GraphInstance:
         self.sol = np.zeros(shape=(len(self.graph.nodes)), dtype=np.int32)
         self.adj_mat = nx.adjacency_matrix(self.graph)
         self.active= np.zeros(shape=(len(self.graph.nodes)), dtype=np.int32)
-        
-
 
     def load_graph(self):
         """
@@ -100,7 +98,6 @@ class GraphInstance:
             req = (grau+1)//2
             self.graph.nodes[node]["requisito"] = req
             self.reqs.append(req)
-
 
     def step(self, no):
         self.sol[no] = 1
