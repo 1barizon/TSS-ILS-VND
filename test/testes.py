@@ -15,6 +15,5 @@ instancia = GraphInstance(file_path)
 
 
 Guloso(instancia)
-print(instancia.sol)
 
 

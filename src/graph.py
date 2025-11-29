@@ -12,9 +12,7 @@ class GraphInstance:
         self.graph = self.load_graph()
         self.reqs = []
         self.calc_req()
-        self.sol = np.zeros(shape=(len(self.graph.nodes)), dtype=np.int32)
         self.adj_mat = nx.adjacency_matrix(self.graph)
-        self.active= np.zeros(shape=(len(self.graph.nodes)), dtype=np.int32)
 
     def load_graph(self):
         """
@@ -99,12 +97,8 @@ class GraphInstance:
             self.graph.nodes[node]["requisito"] = req
             self.reqs.append(req)
 
-    def step(self, no):
-        self.sol[no] = 1
-        self.propagate()
-
-    def propagate(self):
-        active = self.sol.copy().astype(np.float32) 
+    def propagate(self, solution):
+        active = solution.copy().astype(np.float32) 
         changed = True
         while changed:
             neigh_sum = self.adj_mat @ active
@@ -112,6 +106,8 @@ class GraphInstance:
             new_active = np.maximum(active, to_active)
             changed = bool(np.any(new_active != active))
             active = new_active
-        self.active = active
-        
+        return active.sum()
 
+    def is_solution(self, solution):
+        active = self.propagate(solution)
+        return active == len(self.reqs)
