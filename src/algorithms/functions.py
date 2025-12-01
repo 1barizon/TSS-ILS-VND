@@ -1,5 +1,31 @@
 from src.graph import GraphInstance
+
 import random
+import numpy as np
+
+
+
+
+def Guloso(Instancia:GraphInstance, alpha = 0.8, solution_actual = np.array([])):
+    max_it = len(Instancia.reqs)
+    if solution_actual.sum() > 0:
+        solution = solution_actual
+    else:
+        solution = np.zeros(shape=max_it) 
+    active = Instancia.propagate(solution)
+    is_solution = False
+    while active.sum() < max_it or is_solution == False :
+        candidates = calc_residual_degree(solution, Instancia, ascending=False) 
+        cl = [no for no in candidates if active[no[0]] == 0]
+        degree_limit = int(cl[-1][1] + alpha * (cl[0][1] - cl[-1][1]))
+        rcl = [no for no in cl if no[1] >= degree_limit]
+        pick = random.choice(rcl)
+        solution[pick] = 1
+        active = Instancia.propagate(solution)
+        is_solution = Instancia.is_solution(solution)
+    print(f"Solucao Gerada com guloso residual- tamanho: {solution.sum()}")
+    return solution
+
 
 
 def calc_residual_degree(solution, graph:GraphInstance, ascending: bool = True):
@@ -31,8 +57,56 @@ def clean_solution(solution, graph:GraphInstance):
     return new_solution
 
 # refatorar para remover quem e gordura em termo de requisito
+def calculate_critial_nodes(solution, graph:GraphInstance):
+    active = graph.propagate(solution)
+    active_set = {i for i, v in enumerate(active) if v}
+    current_input = {v: 0 for v in graph.graph.nodes()} 
+
+    solution_index = [i for i in range(len(solution)) if solution[i] == 1]
+    for node in graph.graph.nodes():
+        for neighbor in graph.graph.neighbors(node):
+            current_input[neighbor] += 1
+
+    candidates_score = []
+
+    for node in solution_index:
+        critical_score = 0
+        for neighbor in graph.graph.neighbors(node):
+            if neighbor in active_set:
+                req = graph.reqs[neighbor]
+                if current_input[neighbor] == req:
+                    critical_score += 1
+
+        candidates_score.append((node, critical_score))
+    candidates_score.sort(key=lambda x: x[1])
+    return candidates_score
+
+
 def remove_fix(solution, graph:GraphInstance):
-    pass
+    candidates = calculate_critial_nodes(solution, graph)
+    new_solution = solution.copy()
+
+    for node, score in candidates:
+        if score == 0:
+            new_solution[node] = 0 # remove no que o score e zero
+            return new_solution # frist improvement        
+        if score > 3:
+            break # muitos nos criticos1
+
+        sol_ = new_solution.copy()
+        sol_[node] = 0 # solucao esta invalida 
+
+        fixed_sol = Guloso(graph, 1.0, sol_)
+        if fixed_sol.sum() <= new_solution.sum():
+            print("nova_solucao")
+            return fixed_sol
+
+
+
+
+
+
+
 
 def add_remove(solution, graph:GraphInstance):
     new_solution = solution.copy()

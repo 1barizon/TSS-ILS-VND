@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.graph import GraphInstance
-from src.algorithms.greedy import Guloso_residual
+from src.algorithms.functions import Guloso
 from src.algorithms.vnd import run_vnd
 import numpy as np
 
