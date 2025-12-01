@@ -1,21 +1,23 @@
 from src.graph import GraphInstance
 import random
 import numpy as np
+from src.algorithms.moves import calc_residual_degree
 
 
-def Guloso(Instancia:GraphInstance, alpha = 0.8):
+def Guloso_residual(Instancia:GraphInstance, alpha = 0.8):
     max_it = len(Instancia.reqs)
-    ordered_nodes = sorted(Instancia.graph.nodes, key=lambda x:Instancia.graph.nodes[x]['requisito'], reverse=True)
     solution = np.zeros(shape=max_it) 
-    active = 0
+    active = np.zeros(shape=max_it)
     is_solution = False
-    while active < max_it or is_solution == False :
-        cl = [node for node in ordered_nodes if solution[node] == 0]
-        req_limite = int(Instancia.reqs[cl[-1]]+ alpha * (Instancia.reqs[cl[0]] - Instancia.reqs[cl[-1]]))
-        rcl = [no for no in cl if Instancia.reqs[no] >= req_limite]
+    while active.sum() < max_it or is_solution == False :
+        candidates = calc_residual_degree(solution, Instancia) 
+        ordered_candidates = sorted(candidates, key=lambda x: x[1], reverse=True)
+        cl = [no for no in ordered_candidates if active[no[0]] == 0]
+        degree_limit = int(cl[-1][1] + alpha * (cl[0][1] - cl[-1][1]))
+        rcl = [no for no in cl if no[1] >= degree_limit]
         pick = random.choice(rcl)
         solution[pick] = 1
         active = Instancia.propagate(solution)
         is_solution = Instancia.is_solution(solution)
-    print(f"Solucao Gerada com guloso - tamanho: {solution.sum()}")
+    print(f"Solucao Gerada com guloso residual- tamanho: {solution.sum()}")
     return solution

@@ -1,7 +1,17 @@
 from src.graph import GraphInstance
 import random
 
-# funcoes de pertubacoes
+def calc_residual_degree(solution, graph:GraphInstance):
+    residual_degree_list = []
+    active = graph.propagate(solution)
+    active_nodes = [i for i in range(len(active)) if active[i] == 1]
+    for node in graph.graph.nodes():
+        neighbors = list(graph.graph.neighbors(node))
+        neighbors_not_active = len([node for node in neighbors if node not in active_nodes])
+        residual_degree_list.append([node, neighbors_not_active])
+        
+
+    return residual_degree_list
 
 
 def remove_fix(solution, graph:GraphInstance):
@@ -33,7 +43,6 @@ def add_remove(solution, graph:GraphInstance):
         else:
             break
     return new_solution
-
 
 def remove_random(solution, graph:GraphInstance):
     new_solution = solution.copy()

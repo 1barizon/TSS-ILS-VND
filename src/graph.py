@@ -107,8 +107,8 @@ class GraphInstance:
             new_active = np.maximum(active, to_active)
             changed = bool(np.any(new_active != active))
             active = new_active
-        return active.sum()
+        return active
 
     def is_solution(self, solution):
         active = self.propagate(solution)
-        return active == len(self.reqs)
+        return active.sum() == len(self.reqs)
