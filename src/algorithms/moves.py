@@ -16,7 +16,6 @@ def remove_fix(solution, graph:GraphInstance):
         new_solution[node_to_add] = 1 
     return new_solution
 
-
 def add_remove(solution, graph:GraphInstance):
     new_solution = solution.copy()
     out_index = [i for i in range(len(solution)) if new_solution[i] == 0]
@@ -35,8 +34,32 @@ def add_remove(solution, graph:GraphInstance):
             break
     return new_solution
 
-    
 
+def remove_random(solution, graph:GraphInstance):
+    new_solution = solution.copy()
+    index_sol = [i for i in range(len(solution)) if new_solution[i] == 1]
+    node_to_remove = random.choice(index_sol)
+    new_solution[node_to_remove] = 0
+    while graph.is_solution(new_solution) == False:
+        out_index = [i for i in range(len(solution)) if new_solution[i] == 0]
+        node_to_add= random.choice(out_index)
+        new_solution[node_to_add] = 1
+    return new_solution
+
+def reverseMDG(solution, graph:GraphInstance):
+    new_solution = solution.copy()
+    i = 0
+    while True:
+        index_sol = [i for i in range(len(solution)) if new_solution[i] == 1]
+        ordered_nodes = sorted(index_sol ,key=lambda x: graph.graph.degree(x))
+        solution_ = new_solution.copy()
+        solution_[ordered_nodes[0]] = 0
+        if graph.is_solution(solution_):
+            new_solution = solution_
+        else:
+            break
+
+    return new_solution
 
 
 

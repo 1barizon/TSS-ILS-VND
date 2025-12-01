@@ -86,6 +86,7 @@ class GraphInstance:
                 )
             
             G.remove_edges_from(nx.selfloop_edges(G))
+            G = nx.convert_node_labels_to_integers(G, first_label=0, ordering="sorted")
             return G
             
         except Exception as e:

@@ -20,11 +20,13 @@ class ILS:
     def run(self):
         self.best_solution = Guloso(self.graph)
         for i in range(self.max_iter):
-            solution_shake = self.shake(self.best_solution)
+            print(f"sol size: {self.best_solution.sum()}")
+            solution_shake = self.shake(self.best_solution, self.graph)
             new_solution = run_vnd(self.graph , solution_shake, self.neighborhoods)
             if self.graph.is_solution(new_solution) and new_solution.sum() < self.best_solution.sum():
                 self.best_solution = new_solution
                 self.iter_ult = i
+                
             elif new_solution.sum() >= self.best_solution.sum() and i - self.iter_ult > self.iter_limite:
                 self.best_solution = Guloso(self.graph) # gerar nova solucao
 
