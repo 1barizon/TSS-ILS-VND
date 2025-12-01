@@ -10,9 +10,8 @@ def Guloso_residual(Instancia:GraphInstance, alpha = 0.8):
     active = np.zeros(shape=max_it)
     is_solution = False
     while active.sum() < max_it or is_solution == False :
-        candidates = calc_residual_degree(solution, Instancia) 
-        ordered_candidates = sorted(candidates, key=lambda x: x[1], reverse=True)
-        cl = [no for no in ordered_candidates if active[no[0]] == 0]
+        candidates = calc_residual_degree(solution, Instancia, ascending=False) 
+        cl = [no for no in candidates if active[no[0]] == 0]
         degree_limit = int(cl[-1][1] + alpha * (cl[0][1] - cl[-1][1]))
         rcl = [no for no in cl if no[1] >= degree_limit]
         pick = random.choice(rcl)

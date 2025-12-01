@@ -1,5 +1,5 @@
 1. [X] - Pegar dados e tratar para gerar grafos
-1.1 [X] - carregar intancias gerar grafos de todas
+1.1 [X] - carregar intancias gerar grafos de todas 
 1.2 [x]- classe grafo e requisitos 
 2. [X] - metodo guloso para gerar solucao inicial\
 3. [x] - vizinhancas 
