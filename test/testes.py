@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.graph import GraphInstance
 import networkx as nx
 from src.algorithms.ils import ILS
-from src.algorithms.functions import remove_fix, add_remove, remove_random, reverseMDG, calc_residual_degree, clean_solution, Guloso
+from src.algorithms.functions import remove_fix, add_remove, remove_random, calc_residual_degree, clean_solution, Guloso
 import matplotlib.pyplot as plt
 import numpy as np 
 
@@ -14,5 +14,9 @@ file_path = os.path.normpath(file_path)
 file_path = os.path.abspath(file_path)
 instancia = GraphInstance(file_path)
 
-ils = ILS(instancia, 1000, remove_random, (clean_solution, remove_fix))
+
+
+
+ils = ILS(instancia, 1000,1000, remove_random, 0.1,(clean_solution, remove_fix, add_remove))
 ils.run()
+

@@ -23,10 +23,8 @@ def Guloso(Instancia:GraphInstance, alpha = 0.8, solution_actual = np.array([]))
         solution[pick] = 1
         active = Instancia.propagate(solution)
         is_solution = Instancia.is_solution(solution)
-    print(f"Solucao Gerada com guloso residual- tamanho: {solution.sum()}")
+    #print(f"Solucao Gerada com guloso residual- tamanho: {solution.sum()}")
     return solution
-
-
 
 def calc_residual_degree(solution, graph:GraphInstance, ascending: bool = True):
     active = graph.propagate(solution)
@@ -34,7 +32,7 @@ def calc_residual_degree(solution, graph:GraphInstance, ascending: bool = True):
     residual = []
     for node in graph.graph.nodes():
         neighbors = graph.graph.neighbors(node)
-        neighbors_not_active = sum(1 for nbr in neighbors if nbr not in active_set)
+        neighbors_not_active = sum(1 for nbr in neighbors if nbr not in active_set) # soma de vizinhos nao ativos
         residual.append([node, neighbors_not_active])
     return sorted(residual, key=lambda x: x[1], reverse=not ascending)
 
@@ -98,66 +96,35 @@ def remove_fix(solution, graph:GraphInstance):
 
         fixed_sol = Guloso(graph, 1.0, sol_)
         if fixed_sol.sum() <= new_solution.sum():
-            print("nova_solucao")
             return fixed_sol
 
-
-
-
-
-
-
-
+# refatorar 
 def add_remove(solution, graph:GraphInstance):
     new_solution = solution.copy()
-    out_index = [i for i in range(len(solution)) if new_solution[i] == 0]
-    node_to_add = random.choice(out_index)  # devo adici new_solution = solution.copy() 
-    node_degree_list = calc_residual_degree(new_solution, graph, ascending=True)
-    print(node_degree_list)
-    node_to_remove = node_degree_list[0][0]
-    neighbors = graph.graph.neighbors(node_to_remove)
-    print(list(neighbors))
-    candidates = [no for no in node_degree_list if no[0] in list(neighbors)]
-    print(candidates)
-    new_solution[node_to_add] = 1 
-    while True: 
-        sol_ = new_solution.copy()
-        index_sol = [i for i in range(len(solution)) if new_solution[i] == 1]
-        if not index_sol:
+    node_degree_list = calc_residual_degree(new_solution, graph, ascending=False) # grau residual em ordem decrescente
+    for node in node_degree_list: # adicionar um no que esta fora e que tem um grande grau residual
+        if new_solution[node[0]] == 0:
+            new_solution[node[0]] = 1
             break
-        node_to_remove = random.choice(index_sol)
-        sol_[node_to_remove] = 0
-        if graph.is_solution(sol_):
-            new_solution = sol_
-        else:
-            break
+    
+    node_degree_list_new = calc_residual_degree(new_solution, graph, ascending=True)
+    for node in node_degree_list_new:
+        if new_solution[node[0]] == 1:
+            new_solution[node[0]] = 0
+            if graph.is_solution(new_solution):
+                continue
+            else:
+                new_solution[node[0]] = 1
     return new_solution
 
-def remove_random(solution, graph:GraphInstance):
+
+def remove_random(solution, graph:GraphInstance, strength=0.15):
     new_solution = solution.copy()
-    index_sol = [i for i in range(len(solution)) if new_solution[i] == 1]
-    node_to_remove = random.choice(index_sol)
-    new_solution[node_to_remove] = 0
-    while graph.is_solution(new_solution) == False:
-        out_index = [i for i in range(len(solution)) if new_solution[i] == 0]
-        node_to_add= random.choice(out_index)
-        new_solution[node_to_add] = 1
+    sol_list = [i for i in range(len(solution)) if solution[i] == 1] 
+    num_to_remove = max(1, int(len(sol_list) * strength))
+    nodes_to_remove = random.sample(sol_list, num_to_remove)
+    for node in nodes_to_remove:
+        new_solution[node] = 0
+    new_solution = Guloso(graph, 0.8, new_solution)
     return new_solution
-
-def reverseMDG(solution, graph:GraphInstance):
-    new_solution = solution.copy()
-    i = 0
-    while True:
-        index_sol = [i for i in range(len(solution)) if new_solution[i] == 1]
-        ordered_nodes = sorted(index_sol ,key=lambda x: graph.graph.degree(x))
-        solution_ = new_solution.copy()
-        solution_[ordered_nodes[0]] = 0
-        if graph.is_solution(solution_):
-            new_solution = solution_
-        else:
-            break
-    return new_solution
-
-
-
 
