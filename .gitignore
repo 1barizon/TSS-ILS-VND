@@ -14,3 +14,8 @@ venv/
 # Dados e Resultados (Opcional: Se os arquivos forem gigantes, não suba)
 results/logs/
 data/instances/*.large_graph
+data/clean_data
+
+# c++
+build
+bin

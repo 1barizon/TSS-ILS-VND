@@ -3,8 +3,8 @@ CFLAGS = -std=c++17 -O2 -Iinclude -Wall -Wextra
 SRCDIR = src
 OBJDIR = build
 BINDIR = bin
-SOURCES = $(SRCDIR)/main.cpp $(SRCDIR)/Graph.cpp
-OBJS = $(OBJDIR)/main.o $(OBJDIR)/Graph.o
+SOURCES = $(SRCDIR)/main.cpp $(SRCDIR)/Graph.cpp $(SRCDIR)/Propagate.cpp $(SRCDIR)/LocalSearch.cpp
+OBJS = $(OBJDIR)/main.o $(OBJDIR)/Graph.o $(OBJDIR)/Propagate.o $(OBJDIR)/LocalSearch.o
 TARGET = $(BINDIR)/main
 
 .PHONY: all run clean

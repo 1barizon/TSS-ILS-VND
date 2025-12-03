@@ -1,6 +1,5 @@
 from scipy.io import mmread
 import os
-import numpy as np
 import networkx as nx
 
 
@@ -17,15 +16,22 @@ def load_graph(path):
     if not os.path.exists(path):
         raise FileNotFoundError(f"Arquivo não encontrado: {path}")
 
-    # Se for GML, usa o leitor específico
+    # Se for GML ou MTX, usa leitores específicos e pula a leitura por edgelist
+    handled = False
     if path.endswith('.gml'):
+        print(f"lendo GML: {path}")
         G = nx.read_gml(path, label='id')
-    
+        G.remove_edges_from(nx.selfloop_edges(G))
+        G = nx.convert_node_labels_to_integers(G, first_label=0, ordering="sorted")
+        handled = True
+
     if path.endswith(".mtx"):
         sparse_matrix = mmread(path)
         G = nx.from_scipy_sparse_array(sparse_matrix)
         G = G.to_undirected()
         G.remove_edges_from(nx.selfloop_edges(G))
+        G = nx.convert_node_labels_to_integers(G, first_label=0, ordering="sorted")
+        handled = True
 
 
     # Configurações padrão
@@ -33,53 +39,58 @@ def load_graph(path):
     comment_char = '#'
     has_header = False # Nova flag para controle
     
-    # 1. ESPIAR O ARQUIVO (Detecção de metadados e cabeçalho)
-    with open(path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line: continue 
-            
-            # Se for comentário explícito, detectamos o caractere e seguimos
-            if line.startswith(('%', '#')):
-                comment_char = line[0]
-                continue
-            
-        
-            # Detecta separador
-            if ',' in line: delimiter = ','
-            elif '\t' in line: delimiter = '\t'
-            else: delimiter = None # Espaço
-
-            # Teste de conversão: Tenta converter o primeiro elemento para int
-            parts = line.split(delimiter) if delimiter else line.split()
-            try:
-                int(parts[0]) # Se conseguir virar número, é dado!
-                has_header = False
-            except ValueError:
-                has_header = True
-            
-            break 
-
-    print(f"Lendo {path} | Delim: '{'espaço' if delimiter is None else delimiter}' | Header: {has_header}")
-
-    # 2. LER O ARQUIVO (Pulando o cabeçalho se necessário)
-    try:
+    # Se já tratamos o arquivo (gml/mtx), pulamos a leitura por edgelist
+    if not handled:
+        # 1. ESPIAR O ARQUIVO (Detecção de metadados e cabeçalho)
         with open(path, 'r') as f:
-            if has_header:
-                next(f)
-            G = nx.read_edgelist(
-                f, 
-                nodetype=int,          
-                comments=comment_char, 
-                delimiter=delimiter,   
-                create_using=nx.Graph(), 
-                data=False             
-            )
-        
-        G.remove_edges_from(nx.selfloop_edges(G))
-        G = nx.convert_node_labels_to_integers(G, first_label=0, ordering="sorted")
-    except Exception as e:
-        raise ValueError(f"Erro crítico ao ler {path}: {e}")
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+
+                # Se for comentário explícito, detectamos o caractere e seguimos
+                if line.startswith(('%', '#')):
+                    comment_char = line[0]
+                    continue
+
+                # Detecta separador
+                if ',' in line:
+                    delimiter = ','
+                elif '\t' in line:
+                    delimiter = '\t'
+                else:
+                    delimiter = None  # Espaço
+
+                # Teste de conversão: Tenta converter o primeiro elemento para int
+                parts = line.split(delimiter) if delimiter else line.split()
+                try:
+                    int(parts[0])  # Se conseguir virar número, é dado!
+                    has_header = False
+                except ValueError:
+                    has_header = True
+
+                break
+
+        print(f"Lendo {path} | Delim: '{'espaço' if delimiter is None else delimiter}' | Header: {has_header}")
+
+        # 2. LER O ARQUIVO (Pulando o cabeçalho se necessário)
+        try:
+            with open(path, 'r') as f:
+                if has_header:
+                    next(f)
+                G = nx.read_edgelist(
+                    f,
+                    nodetype=int,
+                    comments=comment_char,
+                    delimiter=delimiter,
+                    create_using=nx.Graph(),
+                    data=False,
+                )
+
+            G.remove_edges_from(nx.selfloop_edges(G))
+            G = nx.convert_node_labels_to_integers(G, first_label=0, ordering="sorted")
+        except Exception as e:
+            raise ValueError(f"Erro crítico ao ler {path}: {e}")
 
     # carregado qualquer tipo de grafo    
 
@@ -111,6 +122,7 @@ if not os.path.exists(dir_path):
 arquivos_instancias = os.listdir(dir_path)
 files = []
 instancias = []
+print(arquivos_instancias)
 for file in arquivos_instancias:
     full_path = os.path.join(dir_path, file)
     # pular diretórios e arquivos ocultos

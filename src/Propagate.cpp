@@ -1,4 +1,4 @@
-#include "Propagation.h"
+#include "Propagate.h"
 #include <algorithm>
 
 
@@ -43,7 +43,6 @@ int Propagate::evaluate(const std::vector<int>& solution){
     }
     return totalActive;
 }
-
 
 bool Propagate::isSolution(const std::vector<int>& solution){
         return evaluate(solution) == graph.getN();

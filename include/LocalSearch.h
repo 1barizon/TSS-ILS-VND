@@ -3,10 +3,13 @@
 
 # include <vector>
 #include "Graph.h"
+#include "Propagate.h"
 
 namespace LocalSearch
 {
-    bool
+    std::vector<int> Guloso(int n, Propagate& evaluator);
+
+    std::vector<int> calculateResidualDegree(int )
     
 } // namespace LocalSearch
 
