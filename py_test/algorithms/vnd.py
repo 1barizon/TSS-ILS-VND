@@ -1,4 +1,4 @@
-from src.graph import GraphInstance
+from py_test.graph import GraphInstance
 
 
 def run_vnd(graph :GraphInstance, current_solution,neighborhood_list):

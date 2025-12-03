@@ -9,7 +9,7 @@ namespace LocalSearch
 {
     std::vector<int> Guloso(int n, Propagate& evaluator);
 
-    std::vector<int> calculateResidualDegree(int )
+    std::vector<int> calculateResidualDegree(int n, Graph& graph, std::vector<int>& solution, Propagate& evaluator);
     
 } // namespace LocalSearch
 

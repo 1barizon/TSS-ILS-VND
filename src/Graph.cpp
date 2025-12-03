@@ -36,7 +36,7 @@ const vector<int>& Graph::getNeighbors(int u) const{
     return adj[u];
 }
 
-void Graph::calc_requisitos(double alpha){
+void Graph::calcRequisitos(double alpha){
     reqs.resize(nodes);
     for (int i = 0 ; i < nodes; i++){
         int degree = adj[i].size();
@@ -47,7 +47,7 @@ void Graph::calc_requisitos(double alpha){
     }
 }
 
-int Graph::get_requisito(int u) const{
+int Graph::getRequisito(int u) const{
     return reqs[u];
 }
 

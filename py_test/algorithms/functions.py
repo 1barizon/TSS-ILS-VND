@@ -1,5 +1,4 @@
-from src.graph import GraphInstance
-
+from py_test.graph import GraphInstance
 import random
 import numpy as np
 

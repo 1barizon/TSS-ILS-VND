@@ -1,9 +1,9 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.graph import GraphInstance
-from src.algorithms.functions import Guloso
-from src.algorithms.vnd import run_vnd
+from py_test.graph import GraphInstance
+from py_test.algorithms.functions import Guloso
+from py_test.algorithms.vnd import run_vnd
 import numpy as np
 
 class ILS:

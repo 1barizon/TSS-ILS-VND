@@ -22,8 +22,8 @@ public:
 
     const std::vector<int>& getNeighbors(int u) const;
     // requisitos
-    void calc_requisitos(double alpha);
-    int get_requisito(int u) const;
+    void calcRequisitos(double alpha);
+    int getRequisito(int u) const;
 };
 
 #endif
