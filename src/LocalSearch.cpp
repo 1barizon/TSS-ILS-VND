@@ -12,35 +12,6 @@
 
 namespace LocalSearch
 {
-    std::vector<std::pair<int,int>> calculateResidualDegree(int n, Graph& graph, const std::vector<int>&, const Propagate& evaluator, bool ascending){
-        const std::vector<bool>& actives = evaluator.isActive;
-        std::vector<std::pair<int,int>> residualDegree;
-        residualDegree.reserve(n);
-
-        for (int i = 0; i < n; ++i){
-            int degree = 0;
-            const std::vector<int> neighbors = graph.getNeighbors(i);
-            for (int neighbor : neighbors) {
-                if ((unsigned)neighbor < (unsigned)n && !actives[neighbor]) {
-                    ++degree;
-                }
-            }
-            residualDegree.emplace_back(degree, i);
-        }
-        if (ascending) {
-            std::sort(residualDegree.begin(), residualDegree.end(),
-                      [](const std::pair<int,int>& a, const std::pair<int,int>& b){
-                          return a.first < b.first;
-                      });
-        } else {
-            std::sort(residualDegree.begin(), residualDegree.end(),
-                      [](const std::pair<int,int>& a, const std::pair<int,int>& b){
-                          return a.first > b.first;
-                      });
-        }
-        return residualDegree;
-    }
-
     std::vector<int> Guloso(int n, float alpha, Graph& graph, Propagate& evaluator, std::optional<std::vector<int>>& actualSolution){
         // gerar numero aleatorio
         static thread_local std::mt19937_64 rng(
@@ -73,7 +44,6 @@ namespace LocalSearch
                 bs.insert(i, deg[i]);
             }
         }
-
 
 
         bs.updateBounds();
@@ -154,5 +124,40 @@ namespace LocalSearch
         // Final evaluator sync (ensure evaluator state matches returned solution)
         evaluator.evaluate(solution);
         return solution;
+    }
+
+    std::vector<std::pair<int,int>> calculateScore(int n, Graph &graph, Propagate& evaluator, std::vector<int> &solution)
+    {
+        evaluator.evaluate(solution); // update isActive vector
+        std::vector<bool> active = evaluator.isActive; 
+        std::vector<int> currentInput(n, 0); // quantos nos estao influenciando i 
+        std::vector<std::pair<int, int>> candidatesScore;
+        candidatesScore.reserve(solution.size());
+
+        for(int node : solution){
+            for (int neighbor : graph.getNeighbors(node)){
+                if ((unsigned)neighbor < (unsigned)n) {
+                    currentInput[neighbor] += 1;
+                }
+            }
+        } 
+        for(int node : solution){
+            int score = 0;
+            for (int neighbor : graph.getNeighbors(node)){
+                if ((unsigned)neighbor < (unsigned)n && active[neighbor]){
+                    int req = graph.getRequisito(neighbor);
+                    if (currentInput[neighbor] == req){
+                        score++;
+                    }
+                }
+            }
+            candidatesScore.push_back(std::make_pair(node, score));
+        }
+        return candidatesScore;
+    }
+
+    std::vector<int> cleanSolution(int n, Graph &graph, Propagate &evaluator, std::vector<int> &solution)
+    {
+        return std::vector<int>();
     }
 } // namespace LocalSearch

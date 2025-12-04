@@ -8,9 +8,9 @@
 namespace LocalSearch
 {
     std::vector<int> Guloso(int n, float alpha,Graph& graph, Propagate& evaluator, std::optional<vector<int>> & actualSolution);
+    std::vector<std::pair<int,int>> calculateScore(int n, Graph& graph, Propagate& evaluator, std::vector<int>& solution);
+    std::vector<int> cleanSolution(int n, Graph& graph, Propagate& evaluator, std::vector<int>& solution);
 
-    std::vector<std::pair<int, int>> calculateResidualDegree(int n, Graph& graph, std::vector<int>& solution, Propagate& evaluator, bool ascending = true);
-    
 } // namespace LocalSearch
 
 
