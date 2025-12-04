@@ -33,7 +33,7 @@ int Propagate::evaluate(const std::vector<int>& solution){
         for (int v : graph.getNeighbors(u)){
             if (isActive[v]) continue;
             activeNeighborCount[v]++;
-            if (activeNeighborCount[v] >= graph.get_requisito(v)){
+            if (activeNeighborCount[v] >= graph.getRequisito(v)){
                 isActive[v] = true;
                 propagationQueue.push_back(v);
                 totalActive++;
