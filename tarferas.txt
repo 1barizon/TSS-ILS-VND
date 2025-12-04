@@ -3,4 +3,4 @@
 1.2 [x]- classe grafo e requisitos 
 2. [X] - metodo guloso para gerar solucao inicial\
 3. [x] - vizinhancas 
-4. [] - vnd
+4. [ ] - otimizar evaluator para so contabilizar o a mudandca na solucao e olhar para os vizinhos e calcular

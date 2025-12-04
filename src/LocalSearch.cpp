@@ -1,12 +1,14 @@
 #include "LocalSearch.h"
 #include "Propagate.h"
 #include "Graph.h"
+#include "BucketSystem.h"
 
 #include <vector>
 #include <utility>
 #include <random>
 #include <chrono>
 #include <algorithm>
+#include <iostream>
 
 namespace LocalSearch
 {
@@ -39,18 +41,21 @@ namespace LocalSearch
         return residualDegree;
     }
 
-    // Greedy randomized constructive with efficient incremental residual-degree bookkeeping
     std::vector<int> Guloso(int n, float alpha, Graph& graph, Propagate& evaluator, std::optional<std::vector<int>>& actualSolution){
+        // gerar numero aleatorio
         static thread_local std::mt19937_64 rng(
             (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
         );
+        // solucao tamanho max = n reservado
         std::vector<int> solution;
         solution.reserve(n);
+        // caso uma pre solucao seja passada
         if (actualSolution.has_value() && !actualSolution->empty())
             solution = *actualSolution;
+        // evalueate para qusar isActive e ficar atualizado 
         evaluator.evaluate(solution);
         std::vector<bool> active = evaluator.isActive; 
-        std::vector<int> deg(n, 0);
+        std::vector<int> deg(n, 0); // cada no vai ter um grau iniciado com zero
         int max_deg = 0;
         for (int i = 0; i < n; ++i) {
             const std::vector<int> neighbors = graph.getNeighbors(i);
@@ -62,52 +67,18 @@ namespace LocalSearch
             if (!active[i] && d > max_deg) max_deg = d;
         }
 
-        std::vector<std::vector<int>> buckets(max_deg + 1);
-        std::vector<int> bucket_of(n, -1), pos(n, -1); // pos in bucket, bucket_of = degree index
-        for (int i = 0; i < n; ++i) {
-            if (!active[i]) {
-                int d = deg[i];
-                if (d >= (int)buckets.size()) buckets.resize(d + 1);
-                bucket_of[i] = d;
-                pos[i] = (int)buckets[d].size();
-                buckets[d].push_back(i);
+        BucketSystem bs(n, max_deg);
+        for(int i = 0; i < n; ++i){
+            if(!active[i]){
+                bs.insert(i, deg[i]);
             }
         }
 
-        auto removeFromBucket = [&](int node) {
-            int b = bucket_of[node];
-            if (b < 0) return;
-            int idx = pos[node];
-            int last = buckets[b].back();
-            buckets[b][idx] = last;
-            pos[last] = idx;
-            buckets[b].pop_back();
-            bucket_of[node] = -1;
-            pos[node] = -1;
-        };
 
-        auto moveNodeDegree = [&](int node, int oldd, int newd) {
-            if (oldd == newd) return;
-            // remove from old
-            int b = bucket_of[node];
-            if (b >= 0) {
-                int idx = pos[node];
-                int last = buckets[b].back();
-                buckets[b][idx] = last;
-                pos[last] = idx;
-                buckets[b].pop_back();
-            }
-            // ensure buckets big enough
-            if (newd >= (int)buckets.size()) buckets.resize(newd + 1);
-            bucket_of[node] = newd;
-            pos[node] = (int)buckets[newd].size();
-            buckets[newd].push_back(node);
-        };
 
-        int cur_max = (int)buckets.size() - 1;
-        while (cur_max >= 0 && buckets[cur_max].empty()) --cur_max;
-        int cur_min = 0;
-        while (cur_min <= cur_max && buckets[cur_min].empty()) ++cur_min;
+        bs.updateBounds();
+        int cur_min = bs.getMinBucket();
+        int cur_max = bs.getMaxBucket();
 
         while (!evaluator.isSolution(solution)) {
             if (cur_max < cur_min) break;  
@@ -121,14 +92,14 @@ namespace LocalSearch
             std::vector<int> rcl;
             rcl.reserve(128);
             for (int d = degree_limit; d <= maxd; ++d) {
-                for (int node : buckets[d]) {
+                for (int node : bs.getBucket(d)) {
                     if (!active[node]) rcl.push_back(node);
                 }
             }
 
             if (rcl.empty()) {
                 for (int d = cur_min; d <= cur_max; ++d) {
-                    for (int node : buckets[d]) if (!active[node]) rcl.push_back(node);
+                    for (int node : bs.getBucket(d)) if (!active[node]) rcl.push_back(node);
                 }
                 if (rcl.empty()) break;
             }
@@ -137,13 +108,13 @@ namespace LocalSearch
             int selected = rcl[dist(rng)];
             solution.push_back(selected);
 
-            // mark selected active and remove from bucket
+            // marcar como no selecionado e remover de buscket 
             if (!active[selected]) {
                 active[selected] = true;
-                removeFromBucket(selected);
+                bs.remove(selected);
             }
 
-            // Update neighbors' degrees (each neighbor loses 1 inactive neighbor when 'selected' is activated)
+            // atualizar os graus dos vizinhos, cada vizinho -1 grau
             const std::vector<int> neighbors = graph.getNeighbors(selected);
             for (int nb : neighbors) {
                 if ((unsigned)nb >= (unsigned)n) continue;
@@ -151,24 +122,22 @@ namespace LocalSearch
                 int oldd = deg[nb];
                 int newd = oldd > 0 ? oldd - 1 : 0;
                 deg[nb] = newd;
-                moveNodeDegree(nb, oldd, newd);
+                bs.move(nb, oldd, newd);
             }
 
-            // Recompute cur_max/cur_min efficiently
-            while (cur_max >= 0 && (cur_max >= (int)buckets.size() || buckets[cur_max].empty())) --cur_max;
-            cur_min = 0;
-            while (cur_min <= cur_max && buckets[cur_min].empty()) ++cur_min;
-
-            // Call evaluator to let propagation happen (if it activates additional nodes, sync them)
+            bs.updateBounds();
+            int cur_min = bs.getMinBucket();
+            int cur_max = bs.getMaxBucket();
             evaluator.evaluate(solution);
             if (evaluator.isActive != active) {
-                // find newly activated nodes and update buckets/deg accordingly
+                // encontrar novos ativos para atualzir
                 for (int i = 0; i < n; ++i) {
+                    std::cout << std::endl;
                     if (active[i] == false && evaluator.isActive[i]) {
                         // i became active via propagation
                         active[i] = true;
                         // remove from bucket if present
-                        removeFromBucket(i);
+                        bs.remove(i);
                         // neighbors lose one inactive neighbor
                         for (int nb : graph.getNeighbors(i)) {
                             if ((unsigned)nb >= (unsigned)n) continue;
@@ -176,14 +145,13 @@ namespace LocalSearch
                             int oldd = deg[nb];
                             int newd = oldd > 0 ? oldd - 1 : 0;
                             deg[nb] = newd;
-                            moveNodeDegree(nb, oldd, newd);
+                            bs.move(nb, oldd, newd);
                         }
                     }
                 }
                 // refresh bounds
-                while (cur_max >= 0 && (cur_max >= (int)buckets.size() || buckets[cur_max].empty())) --cur_max;
-                cur_min = 0;
-                while (cur_min <= cur_max && buckets[cur_min].empty()) ++cur_min;
+                bs.updateBounds();
+                cur_min = bs.getMinBucket();
             }
         }
 
