@@ -7,12 +7,12 @@
 
 class BucketSystem {
 private:
-    std::vector<std::vector<int>> buckets;
-    std::vector<int> bucket_of;
-    std::vector<int> pos; 
     int n;
     int min_bucket;
     int max_bucket;
+    std::vector<std::vector<int>> buckets;
+    std::vector<int> bucket_of;
+    std::vector<int> pos;
 
 public:
     //construtor

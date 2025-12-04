@@ -12,7 +12,7 @@
 
 namespace LocalSearch
 {
-    std::vector<std::pair<int,int>> calculateResidualDegree(int n, Graph& graph, const std::vector<int>& solution, const Propagate& evaluator, bool ascending){
+    std::vector<std::pair<int,int>> calculateResidualDegree(int n, Graph& graph, const std::vector<int>&, const Propagate& evaluator, bool ascending){
         const std::vector<bool>& actives = evaluator.isActive;
         std::vector<std::pair<int,int>> residualDegree;
         residualDegree.reserve(n);
@@ -126,13 +126,10 @@ namespace LocalSearch
             }
 
             bs.updateBounds();
-            int cur_min = bs.getMinBucket();
-            int cur_max = bs.getMaxBucket();
             evaluator.evaluate(solution);
             if (evaluator.isActive != active) {
                 // encontrar novos ativos para atualzir
                 for (int i = 0; i < n; ++i) {
-                    std::cout << std::endl;
                     if (active[i] == false && evaluator.isActive[i]) {
                         // i became active via propagation
                         active[i] = true;
@@ -151,7 +148,6 @@ namespace LocalSearch
                 }
                 // refresh bounds
                 bs.updateBounds();
-                cur_min = bs.getMinBucket();
             }
         }
 
