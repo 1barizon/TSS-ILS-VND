@@ -159,7 +159,7 @@ namespace LocalSearch
         
         // fix it com guloso
         std::optional<std::vector<bool>> opt = newSolution;
-        newSolution = Guloso(graph.getN(), 0.0, graph, evaluator, opt);
+        newSolution = Guloso(graph.getN(), 0.1, graph, evaluator, opt);
         return newSolution;
     }
 
@@ -169,26 +169,28 @@ namespace LocalSearch
         std::vector<bool> newSolution = solution;
         int n = graph.getN();
         
-        // objetivo: mudar a solucao nao necessariamente para melhor
+        // Collect nodes in solution with their degrees
         std::vector<std::pair<int, int>> degrees; 
+        degrees.reserve(n);
         for (int node = 0; node < n; ++node){
             if (solution[node]) {
-                int degree = graph.getNeighbors(node).size();
-                degrees.push_back(std::make_pair(node, degree));
+                degrees.emplace_back(node, graph.getNeighbors(node).size());
             }
         }
         
-        std::sort(degrees.begin(), degrees.end(), [](const std::pair<int, int>a, const std::pair<int, int>b){
-            return a.second < b.second;
-        });
+        // Sort by degree (lowest first)
+        std::sort(degrees.begin(), degrees.end(), 
+                  [](const std::pair<int, int>& a, const std::pair<int, int>& b){
+                      return a.second < b.second;
+                  });
         
-        for(std::pair<int,int> node : degrees){
+        for (const auto& [node, degree] : degrees){
             std::vector<bool> sol_ = solution;
-            sol_[node.first] = false;
+            sol_[node] = false;
             
-            if(!evaluator.isSolution(sol_)){
+            if (!evaluator.isSolution(sol_)) {
                 std::optional<std::vector<bool>> opt = sol_;
-                sol_ = Guloso(graph.getN(), 1.0, graph, evaluator, opt);
+                sol_ = Guloso(n, 1.0, graph, evaluator, opt);
                 
                 int newSize = 0, oldSize = 0;
                 for (int i = 0; i < n; ++i) {
@@ -196,13 +198,11 @@ namespace LocalSearch
                     if (newSolution[i]) oldSize++;
                 }
                 
-                if(newSize < oldSize || (newSize == oldSize && sol_ != newSolution)) {
-                    newSolution = sol_;
-                    break;
+                if (newSize < oldSize || (newSize == oldSize && sol_ != newSolution)) {
+                    return sol_;
                 }
             }
         }
-        
         return newSolution;
     }
 
@@ -252,11 +252,9 @@ namespace LocalSearch
             if (newSolution[i]) newSize++;
             if (solution[i]) oldSize++;
         }
-        
         if (newSize < oldSize) {
             return newSolution;
         }
-        
         return solution;
     }
 
