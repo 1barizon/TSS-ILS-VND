@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from py_test.graph import GraphInstance
 import networkx as nx
 from py_test.algorithms.ils import ILS
-from py_test.algorithms.functions import remove_fix, add_remove, remove_random, calc_residual_degree, clean_solution, Guloso
+from py_test.algorithms.functions import remove_fix, add_remove, remove_random, calc_residual_degree, clean_solution, Guloso, calculate_critial_nodes
 import matplotlib.pyplot as plt
 import numpy as np 
 
@@ -23,3 +23,9 @@ instancia = GraphInstance(file_path)
 
 sol = Guloso(instancia, 0.9)
 print(f"sol size: {sol.sum()}")
+sol1 = clean_solution(sol, instancia)
+print(f"sol1 sum: {sol1.sum()}")
+score = calculate_critial_nodes(sol1, instancia)
+node_to_remove = score[0][0]
+sol1[node_to_remove] = 0
+print(instancia.is_solution(sol1))

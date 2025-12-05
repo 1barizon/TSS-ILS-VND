@@ -37,19 +37,19 @@ def calc_residual_degree(solution, graph:GraphInstance, ascending: bool = True):
 # trocar recalcular a cada troca
 def clean_solution(solution, graph:GraphInstance):
     new_solution = solution.copy()
-    while True:
-        candidates = calc_residual_degree(new_solution, graph, ascending=True)
-        candidates_in_solution = [node for node, _ in candidates if new_solution[node] == 1]
+    removed = True
+    while removed:
+        candidates = calculate_critial_nodes(new_solution, graph)
         removed = False
-        for node in candidates_in_solution:
-            solution_ = new_solution.copy()
-            solution_[node] = 0
-            if graph.is_solution(solution_):
-                new_solution = solution_
-                removed = True
-                break
-        if not removed:
-            break
+        for node, _ in candidates:
+            if new_solution[node] == 1:
+                solution_ = new_solution.copy()
+                solution_[node] = 0
+                is_valid, _ = graph.is_solution(solution_)
+                if is_valid:
+                    new_solution = solution_
+                    removed = True
+                    break
     return new_solution
 
 # refatorar para remover quem e gordura em termo de requisito

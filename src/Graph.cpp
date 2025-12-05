@@ -50,5 +50,3 @@ void Graph::calcRequisitos(double alpha){
 int Graph::getRequisito(int u) const{
     return reqs[u];
 }
-
-

@@ -14,12 +14,9 @@ int main(){
     std::optional<std::vector<int>> initial_opt = std::nullopt;
     std::vector<int> solucaoInicial = LocalSearch::Guloso(g.getN(), 0.5, g, evaluator, initial_opt); 
     std::cout << "Tamanho da solucao: " << solucaoInicial.size() << std::endl;
-    std::vector<std::pair<int,int>> scores =  LocalSearch::calculateScore(g.getN(), g, evaluator, solucaoInicial);
-    for(int i = 0; i < solucaoInicial.size(); i++){
-        std::cout << scores[i].first << "-" <<scores[i].second << std::endl; 
-    }
-
-
+    std::vector<int> newSolution = LocalSearch::shake(g, evaluator, solucaoInicial, 0.1);
+    std::cout << "Tamanho da nova solucao: " << newSolution.size() << std::endl;
+    
     return 0;
 
 }

@@ -126,38 +126,47 @@ namespace LocalSearch
         return solution;
     }
 
-    std::vector<std::pair<int,int>> calculateScore(int n, Graph &graph, Propagate& evaluator, std::vector<int> &solution)
-    {
-        evaluator.evaluate(solution); // update isActive vector
-        std::vector<bool> active = evaluator.isActive; 
-        std::vector<int> currentInput(n, 0); // quantos nos estao influenciando i 
-        std::vector<std::pair<int, int>> candidatesScore;
-        candidatesScore.reserve(solution.size());
 
-        for(int node : solution){
-            for (int neighbor : graph.getNeighbors(node)){
-                if ((unsigned)neighbor < (unsigned)n) {
-                    currentInput[neighbor] += 1;
-                }
-            }
-        } 
-        for(int node : solution){
-            int score = 0;
-            for (int neighbor : graph.getNeighbors(node)){
-                if ((unsigned)neighbor < (unsigned)n && active[neighbor]){
-                    int req = graph.getRequisito(neighbor);
-                    if (currentInput[neighbor] == req){
-                        score++;
-                    }
-                }
-            }
-            candidatesScore.push_back(std::make_pair(node, score));
+    std::vector<int> shake(Graph &graph, Propagate &evaluator, std::vector<int> solution, float intensity)
+    {
+        std::vector<int> newSolution = solution;
+        static thread_local std::mt19937_64 rng(
+            (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
+        );
+        int numNodesToRemove = solution.size()*intensity;
+        for(int i = 0 ; i < numNodesToRemove; i++){
+            std::uniform_int_distribution<int> dist(0, newSolution.size() - 1);
+            int randomIdx = dist(rng);
+            newSolution.erase(newSolution.begin() + randomIdx);
         }
-        return candidatesScore;
+        // fix it com guloso
+        std::optional<std::vector<int>> opt = newSolution;
+        newSolution = Guloso(graph.getN(), 0.0, graph, evaluator, opt);
+        return newSolution;
     }
 
-    std::vector<int> cleanSolution(int n, Graph &graph, Propagate &evaluator, std::vector<int> &solution)
+
+    std::vector<int> Swap(Graph &graph, Propagate &evaluator, std::vector<int> solution)
+    {
+       // troca 1-1  
+        for(int node : solution){
+            std::vector<int> sol_ = solution;
+
+
+        }
+        
+        return std::vector<int>();
+    }
+
+    std::vector<int> removeFix(Graph &graph, Propagate &evaluator, std::vector<int> solution)
+    {
+        // remover o maximo possivel ate ficar invalida e corrigir com o guloso exigindo que a solucao seja diferente
+        return std::vector<int>();
+    }
+
+    std::vector<int> addRemove(Graph &graph, Propagate &evaluator, std::vector<int> solution)
     {
         return std::vector<int>();
     }
+
 } // namespace LocalSearch
