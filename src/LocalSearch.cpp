@@ -9,16 +9,17 @@
 #include <chrono>
 #include <algorithm>
 #include <iostream>
+#include <cstdint>
 
 namespace LocalSearch
 {
-    std::vector<bool> Guloso(int n, float alpha, Graph& graph, Propagate& evaluator, std::optional<std::vector<bool>>& actualSolution){
+    std::vector<uint8_t> Guloso(int n, float alpha, Graph& graph, Propagate& evaluator, std::optional<std::vector<uint8_t>>& actualSolution){
         // gerar numero aleatorio
         static thread_local std::mt19937_64 rng(
             (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
         );
         // solucao binaria: solution[i] = true se o nó i está na solução
-        std::vector<bool> solution(n, false);
+        std::vector<uint8_t> solution(n, 0);
         
         // caso uma pre solucao seja passada
         if (actualSolution.has_value())
@@ -26,7 +27,7 @@ namespace LocalSearch
         
         // evalueate para usar isActive e ficar atualizado 
         evaluator.evaluate(solution);
-        std::vector<bool> active = evaluator.isActive; 
+        std::vector<uint8_t> active = evaluator.isActive; 
         std::vector<int> deg(n, 0); // cada no vai ter um grau iniciado com zero
         int max_deg = 0;
         for (int i = 0; i < n; ++i) {
@@ -77,11 +78,11 @@ namespace LocalSearch
 
             std::uniform_int_distribution<size_t> dist(0, rcl.size() - 1);
             int selected = rcl[dist(rng)];
-            solution[selected] = true;
+            solution[selected] = 1;
 
             // marcar como no selecionado e remover de buscket 
             if (!active[selected]) {
-                active[selected] = true;
+                active[selected] = 1;
                 bs.remove(selected);
             }
 
@@ -103,7 +104,7 @@ namespace LocalSearch
                 for (int i = 0; i < n; ++i) {
                     if (active[i] == false && evaluator.isActive[i]) {
                         // i became active via propagation
-                        active[i] = true;
+                        active[i] = 1;
                         // remove from bucket if present
                         bs.remove(i);
                         // neighbors lose one inactive neighbor
@@ -128,9 +129,9 @@ namespace LocalSearch
     }
 
 
-    std::vector<bool> shake(Graph &graph, Propagate &evaluator, std::vector<bool> solution, float intensity)
+    std::vector<uint8_t> shake(Graph &graph, Propagate &evaluator, std::vector<uint8_t> solution, float intensity)
     {
-        std::vector<bool> newSolution = solution;
+        std::vector<uint8_t> newSolution = solution;
         static thread_local std::mt19937_64 rng(
             (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
         );
@@ -153,20 +154,20 @@ namespace LocalSearch
         for(int i = 0; i < numNodesToRemove && !nodesInSolution.empty(); i++){
             std::uniform_int_distribution<int> dist(0, nodesInSolution.size() - 1);
             int randomIdx = dist(rng);
-            newSolution[nodesInSolution[randomIdx]] = false;
+            newSolution[nodesInSolution[randomIdx]] = 0;
             nodesInSolution.erase(nodesInSolution.begin() + randomIdx);
         }
         
         // fix it com guloso
-        std::optional<std::vector<bool>> opt = newSolution;
+        std::optional<std::vector<uint8_t>> opt = newSolution;
         newSolution = Guloso(graph.getN(), 0.1, graph, evaluator, opt);
         return newSolution;
     }
 
 
-    std::vector<bool> removeFix(Graph &graph, Propagate &evaluator, std::vector<bool> solution)
+    std::vector<uint8_t> removeFix(Graph &graph, Propagate &evaluator, std::vector<uint8_t> solution)
     {
-        std::vector<bool> newSolution = solution;
+        std::vector<uint8_t> newSolution = solution;
         int n = graph.getN();
         
         // Collect nodes in solution with their degrees
@@ -185,11 +186,11 @@ namespace LocalSearch
                   });
         
         for (const auto& [node, degree] : degrees){
-            std::vector<bool> sol_ = solution;
-            sol_[node] = false;
+            std::vector<uint8_t> sol_ = solution;
+            sol_[node] = 0;
             
             if (!evaluator.isSolution(sol_)) {
-                std::optional<std::vector<bool>> opt = sol_;
+                std::optional<std::vector<uint8_t>> opt = sol_;
                 sol_ = Guloso(n, 1.0, graph, evaluator, opt);
                 
                 int newSize = 0, oldSize = 0;
@@ -207,55 +208,47 @@ namespace LocalSearch
     }
 
 
-    std::vector<bool> addRemove(Graph &graph, Propagate &evaluator, std::vector<bool> solution)
+    std::vector<uint8_t> addRemove(Graph &graph, Propagate &evaluator, std::vector<uint8_t> solution)
     {
-        std::vector<bool> newSolution = solution;
         int n = graph.getN();
         static thread_local std::mt19937_64 rng(
             (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
         );
         
-        // Coletar nós fora da solução
+        // Collect nodes not in solution
         std::vector<int> notInSolution;
+        notInSolution.reserve(n);
         for (int i = 0; i < n; ++i) {
             if (!solution[i]) {
-            notInSolution.push_back(i);
+                notInSolution.push_back(i);
             }
         }
         
-        if (notInSolution.empty()) return newSolution;
+        if (notInSolution.empty()) return solution;
         
-        // Adicionar um vértice aleatório
+        // Add a random node
         std::uniform_int_distribution<size_t> dist(0, notInSolution.size() - 1);
-        int nodeToAdd = notInSolution[dist(rng)];
-        newSolution[nodeToAdd] = true;
+        std::vector<uint8_t> newSolution = solution;
+        newSolution[notInSolution[dist(rng)]] = 1;
         
-        // Tentar remover o máximo possível
-        std::vector<int> nodesInSolution;
+        // Try to remove nodes greedily
         for (int i = 0; i < n; ++i) {
-            if (newSolution[i]) nodesInSolution.push_back(i);
-        }
-        
-        std::vector<bool> candidate = newSolution;
-        for (int node : nodesInSolution) {
-            candidate[node] = false;
-            if (evaluator.isSolution(candidate)) {
-            newSolution = candidate;
-            } else {
-            candidate[node] = true;
+            if (newSolution[i]) {
+                newSolution[i] = 0;
+                if (!evaluator.isSolution(newSolution)) {
+                    newSolution[i] = 1;
+                }
             }
         }
         
-        // Aceitar apenas se a solução diminuir
+        // Count sizes
         int newSize = 0, oldSize = 0;
         for (int i = 0; i < n; ++i) {
             if (newSolution[i]) newSize++;
             if (solution[i]) oldSize++;
         }
-        if (newSize < oldSize) {
-            return newSolution;
-        }
-        return solution;
+        
+        return (newSize < oldSize) ? newSolution : solution;
     }
 
 } // namespace LocalSearch

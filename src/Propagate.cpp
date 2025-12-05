@@ -1,5 +1,6 @@
 #include "Propagate.h"
 #include <algorithm>
+#include <cstdint>
 
 
 Propagate::Propagate(const Graph& g) : graph(g) {
@@ -9,10 +10,10 @@ Propagate::Propagate(const Graph& g) : graph(g) {
     propagationQueue.reserve(n);
 }
 
-int Propagate::evaluate(const std::vector<bool>& solution){
+int Propagate::evaluate(const std::vector<uint8_t>& solution){
     int n = graph.getN();
     std::fill(activeNeighborCount.begin(), activeNeighborCount.end(), 0);
-    std::fill(isActive.begin(), isActive.end(), false);
+    std::fill(isActive.begin(), isActive.end(), 0);
     propagationQueue.clear();
 
     int totalActive = 0;
@@ -44,6 +45,6 @@ int Propagate::evaluate(const std::vector<bool>& solution){
     return totalActive;
 }
 
-bool Propagate::isSolution(const std::vector<bool>& solution){
+bool Propagate::isSolution(const std::vector<uint8_t>& solution){
         return evaluate(solution) == graph.getN();
 }

@@ -3,6 +3,7 @@
 
 #include "Graph.h"
 #include <vector>
+#include <cstdint>
 
 class Propagate {
 private:
@@ -12,10 +13,10 @@ private:
     std::vector<int> propagationQueue;
 
 public:
-    std::vector<bool> isActive;
+    std::vector<uint8_t> isActive;
     Propagate(const Graph& g);
-    int evaluate(const std::vector<bool>& solution);
-    bool isSolution(const std::vector<bool>& solution);
+    int evaluate(const std::vector<uint8_t>& solution);
+    bool isSolution(const std::vector<uint8_t>& solution);
 };
 
 
