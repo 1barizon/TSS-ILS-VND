@@ -7,11 +7,10 @@
 #include <optional>
 namespace LocalSearch
 {
-    std::vector<int> Guloso(int n, float alpha,Graph& graph, Propagate& evaluator, std::optional<vector<int>> & actualSolution);
-    std::vector<int> shake(Graph& graph, Propagate& evaluator, std::vector<int> solution, float intensity);
-    std::vector<int> Swap(Graph& graph, Propagate& evaluator, std::vector<int> solution);
-    std::vector<int> removeFix(Graph& graph, Propagate& evaluator, std::vector<int> solution);
-    std::vector<int> addRemove(Graph& graph, Propagate& evaluator, std::vector<int> solution);
+    std::vector<bool> Guloso(int n, float alpha,Graph& graph, Propagate& evaluator, std::optional<std::vector<bool>>& actualSolution);
+    std::vector<bool> shake(Graph& graph, Propagate& evaluator, std::vector<bool> solution, float intensity);
+    std::vector<bool> removeFix(Graph& graph, Propagate& evaluator, std::vector<bool> solution);
+    std::vector<bool> addRemove(Graph& graph, Propagate& evaluator, std::vector<bool> solution);
 } // namespace LocalSearch
 
 

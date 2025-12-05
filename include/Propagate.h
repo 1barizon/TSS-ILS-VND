@@ -14,8 +14,8 @@ private:
 public:
     std::vector<bool> isActive;
     Propagate(const Graph& g);
-    int evaluate(const std::vector<int>& solution);
-    bool isSolution(const std::vector<int>& solution);
+    int evaluate(const std::vector<bool>& solution);
+    bool isSolution(const std::vector<bool>& solution);
 };
 
 

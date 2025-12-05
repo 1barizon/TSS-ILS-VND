@@ -9,7 +9,7 @@ Propagate::Propagate(const Graph& g) : graph(g) {
     propagationQueue.reserve(n);
 }
 
-int Propagate::evaluate(const std::vector<int>& solution){
+int Propagate::evaluate(const std::vector<bool>& solution){
     int n = graph.getN();
     std::fill(activeNeighborCount.begin(), activeNeighborCount.end(), 0);
     std::fill(isActive.begin(), isActive.end(), false);
@@ -18,8 +18,8 @@ int Propagate::evaluate(const std::vector<int>& solution){
     int totalActive = 0;
 
     // 1. ativar a semente 
-    for(int node : solution) {
-        if (!isActive[node]){
+    for(int node = 0; node < n; ++node) {
+        if (solution[node] && !isActive[node]){
             isActive[node] = true;
             propagationQueue.push_back(node);
             totalActive++;
@@ -44,6 +44,6 @@ int Propagate::evaluate(const std::vector<int>& solution){
     return totalActive;
 }
 
-bool Propagate::isSolution(const std::vector<int>& solution){
+bool Propagate::isSolution(const std::vector<bool>& solution){
         return evaluate(solution) == graph.getN();
 }

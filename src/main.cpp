@@ -11,20 +11,31 @@ int main(){
     Propagate evaluator(g);
     std::cout << "grafo carregado" <<"Nodes: "<< g.getN() << ", Vertices = " << g.getE() << std::endl; 
     std::cout << "Rodando Guloso..." << std::endl;
-    std::optional<std::vector<int>> initial_opt = std::nullopt;
-    std::vector<int> solucaoInicial = LocalSearch::Guloso(g.getN(), 0.4, g, evaluator, initial_opt); 
-    std::cout << "Tamanho da solucao: " << solucaoInicial.size() << std::endl;
-    std::vector<int> newSolution = LocalSearch::Swap(g, evaluator, solucaoInicial);
-    std::cout << "Tamanho da nova solucao: " << newSolution.size() << std::endl;
+    std::optional<std::vector<bool>> initial_opt = std::nullopt;
+    std::vector<bool> solucaoInicial = LocalSearch::Guloso(g.getN(), 0.4, g, evaluator, initial_opt); 
+    
+    int solucaoInicialSize = 0;
+    for (int i = 0; i < g.getN(); ++i) {
+        if (solucaoInicial[i]) solucaoInicialSize++;
+    }
+    std::cout << "Tamanho da solucao: " << solucaoInicialSize << std::endl;
+    
+    std::vector<bool> newSolution = LocalSearch::addRemove(g, evaluator, solucaoInicial);
+    int newSolutionSize = 0;
+    for (int i = 0; i < g.getN(); ++i) {
+        if (newSolution[i]) newSolutionSize++;
+    }
+    std::cout << "Tamanho da nova solucao: " << newSolutionSize << std::endl;
+    
     std::cout << "Solucao Inicial: ";
-    for (int node : solucaoInicial) {
-        std::cout << node << " ";
+    for (int i = 0; i < g.getN(); ++i) {
+        if (solucaoInicial[i]) std::cout << i << " ";
     }
     std::cout << std::endl;
 
     std::cout << "Nova Solucao:    ";
-    for (int node : newSolution) {
-        std::cout << node << " ";
+    for (int i = 0; i < g.getN(); ++i) {
+        if (newSolution[i]) std::cout << i << " ";
     }
     std::cout << std::endl;
 

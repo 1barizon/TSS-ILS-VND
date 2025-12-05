@@ -12,18 +12,19 @@
 
 namespace LocalSearch
 {
-    std::vector<int> Guloso(int n, float alpha, Graph& graph, Propagate& evaluator, std::optional<std::vector<int>>& actualSolution){
+    std::vector<bool> Guloso(int n, float alpha, Graph& graph, Propagate& evaluator, std::optional<std::vector<bool>>& actualSolution){
         // gerar numero aleatorio
         static thread_local std::mt19937_64 rng(
             (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
         );
-        // solucao tamanho max = n reservado
-        std::vector<int> solution;
-        solution.reserve(n);
+        // solucao binaria: solution[i] = true se o nó i está na solução
+        std::vector<bool> solution(n, false);
+        
         // caso uma pre solucao seja passada
-        if (actualSolution.has_value() && !actualSolution->empty())
+        if (actualSolution.has_value())
             solution = *actualSolution;
-        // evalueate para qusar isActive e ficar atualizado 
+        
+        // evalueate para usar isActive e ficar atualizado 
         evaluator.evaluate(solution);
         std::vector<bool> active = evaluator.isActive; 
         std::vector<int> deg(n, 0); // cada no vai ter um grau iniciado com zero
@@ -76,7 +77,7 @@ namespace LocalSearch
 
             std::uniform_int_distribution<size_t> dist(0, rcl.size() - 1);
             int selected = rcl[dist(rng)];
-            solution.push_back(selected);
+            solution[selected] = true;
 
             // marcar como no selecionado e remover de buscket 
             if (!active[selected]) {
@@ -127,66 +128,136 @@ namespace LocalSearch
     }
 
 
-    std::vector<int> shake(Graph &graph, Propagate &evaluator, std::vector<int> solution, float intensity)
+    std::vector<bool> shake(Graph &graph, Propagate &evaluator, std::vector<bool> solution, float intensity)
     {
-        std::vector<int> newSolution = solution;
+        std::vector<bool> newSolution = solution;
         static thread_local std::mt19937_64 rng(
             (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
         );
-        int numNodesToRemove = solution.size()*intensity;
-        for(int i = 0 ; i < numNodesToRemove; i++){
-            std::uniform_int_distribution<int> dist(0, newSolution.size() - 1);
-            int randomIdx = dist(rng);
-            newSolution.erase(newSolution.begin() + randomIdx);
+        
+        int n = graph.getN();
+        int solutionSize = 0;
+        for (int i = 0; i < n; ++i) {
+            if (solution[i]) solutionSize++;
         }
+        
+        int numNodesToRemove = solutionSize * intensity;
+        
+        // Coletar nós na solução
+        std::vector<int> nodesInSolution;
+        for (int i = 0; i < n; ++i) {
+            if (newSolution[i]) nodesInSolution.push_back(i);
+        }
+        
+        // Remover nós aleatoriamente
+        for(int i = 0; i < numNodesToRemove && !nodesInSolution.empty(); i++){
+            std::uniform_int_distribution<int> dist(0, nodesInSolution.size() - 1);
+            int randomIdx = dist(rng);
+            newSolution[nodesInSolution[randomIdx]] = false;
+            nodesInSolution.erase(nodesInSolution.begin() + randomIdx);
+        }
+        
         // fix it com guloso
-        std::optional<std::vector<int>> opt = newSolution;
+        std::optional<std::vector<bool>> opt = newSolution;
         newSolution = Guloso(graph.getN(), 0.0, graph, evaluator, opt);
         return newSolution;
     }
 
 
-    std::vector<int> Swap(Graph &graph, Propagate &evaluator, std::vector<int> solution)
+    std::vector<bool> removeFix(Graph &graph, Propagate &evaluator, std::vector<bool> solution)
     {
-        std::vector<int> newSolution = solution;
+        std::vector<bool> newSolution = solution;
+        int n = graph.getN();
+        
         // objetivo: mudar a solucao nao necessariamente para melhor
-        std::vector<std::pair<int , int>> degrees; 
-        for (int node : solution){
-            int degree = graph.getNeighbors(node).size();
-            degrees.push_back(std::make_pair(node, degree));
+        std::vector<std::pair<int, int>> degrees; 
+        for (int node = 0; node < n; ++node){
+            if (solution[node]) {
+                int degree = graph.getNeighbors(node).size();
+                degrees.push_back(std::make_pair(node, degree));
+            }
         }
-        std::sort(degrees.begin(), degrees.end(), [](const std::pair<int , int>a, const std::pair<int ,int>b){
+        
+        std::sort(degrees.begin(), degrees.end(), [](const std::pair<int, int>a, const std::pair<int, int>b){
             return a.second < b.second;
         });
+        
         for(std::pair<int,int> node : degrees){
-            std::vector<int> sol_ = solution;
-            auto it = std::find(sol_.begin(), sol_.end(), node.first);
-            if (it != sol_.end()) {
-                sol_.erase(it);
-            }
+            std::vector<bool> sol_ = solution;
+            sol_[node.first] = false;
+            
             if(!evaluator.isSolution(sol_)){
-                std::optional<std::vector<int>> opt = sol_;
-                sol_ = Guloso(graph.getN(), 0.0, graph, evaluator, opt);
-                if(sol_.size() < newSolution.size() || sol_.size() == newSolution.size() &&  sol_ != newSolution) {
+                std::optional<std::vector<bool>> opt = sol_;
+                sol_ = Guloso(graph.getN(), 1.0, graph, evaluator, opt);
+                
+                int newSize = 0, oldSize = 0;
+                for (int i = 0; i < n; ++i) {
+                    if (sol_[i]) newSize++;
+                    if (newSolution[i]) oldSize++;
+                }
+                
+                if(newSize < oldSize || (newSize == oldSize && sol_ != newSolution)) {
                     newSolution = sol_;
                     break;
                 }
             }
-            
         }
         
         return newSolution;
     }
 
-    std::vector<int> removeFix(Graph &graph, Propagate &evaluator, std::vector<int> solution)
-    {
-        // remover o maximo possivel ate ficar invalida e corrigir com o guloso exigindo que a solucao seja diferente
-        return std::vector<int>();
-    }
 
-    std::vector<int> addRemove(Graph &graph, Propagate &evaluator, std::vector<int> solution)
+    std::vector<bool> addRemove(Graph &graph, Propagate &evaluator, std::vector<bool> solution)
     {
-        return std::vector<int>();
+        std::vector<bool> newSolution = solution;
+        int n = graph.getN();
+        static thread_local std::mt19937_64 rng(
+            (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count()
+        );
+        
+        // Coletar nós fora da solução
+        std::vector<int> notInSolution;
+        for (int i = 0; i < n; ++i) {
+            if (!solution[i]) {
+            notInSolution.push_back(i);
+            }
+        }
+        
+        if (notInSolution.empty()) return newSolution;
+        
+        // Adicionar um vértice aleatório
+        std::uniform_int_distribution<size_t> dist(0, notInSolution.size() - 1);
+        int nodeToAdd = notInSolution[dist(rng)];
+        newSolution[nodeToAdd] = true;
+        
+        // Tentar remover o máximo possível
+        std::vector<int> nodesInSolution;
+        for (int i = 0; i < n; ++i) {
+            if (newSolution[i]) nodesInSolution.push_back(i);
+        }
+        
+        std::vector<bool> candidate = newSolution;
+        for (int node : nodesInSolution) {
+            candidate[node] = false;
+            if (evaluator.isSolution(candidate)) {
+            newSolution = candidate;
+            } else {
+            candidate[node] = true;
+            }
+        }
+        
+        // Aceitar apenas se a solução diminuir
+        int newSize = 0, oldSize = 0;
+        for (int i = 0; i < n; ++i) {
+            if (newSolution[i]) newSize++;
+            if (solution[i]) oldSize++;
+        }
+        
+        if (newSize < oldSize) {
+            return newSolution;
+        }
+        
+        return solution;
     }
 
 } // namespace LocalSearch

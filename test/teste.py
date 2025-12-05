@@ -20,12 +20,3 @@ instancia = GraphInstance(file_path)
 #ils = ILS(instancia, 1000,1000, remove_random, 0.1,(clean_solution, remove_fix, add_remove))
 #ils.run()
 
-
-sol = Guloso(instancia, 0.9)
-print(f"sol size: {sol.sum()}")
-sol1 = clean_solution(sol, instancia)
-print(f"sol1 sum: {sol1.sum()}")
-score = calculate_critial_nodes(sol1, instancia)
-node_to_remove = score[0][0]
-sol1[node_to_remove] = 0
-print(instancia.is_solution(sol1))
