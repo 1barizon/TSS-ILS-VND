@@ -148,14 +148,34 @@ namespace LocalSearch
 
     std::vector<int> Swap(Graph &graph, Propagate &evaluator, std::vector<int> solution)
     {
-       // troca 1-1  
-        for(int node : solution){
+        std::vector<int> newSolution = solution;
+        // objetivo: mudar a solucao nao necessariamente para melhor
+        std::vector<std::pair<int , int>> degrees; 
+        for (int node : solution){
+            int degree = graph.getNeighbors(node).size();
+            degrees.push_back(std::make_pair(node, degree));
+        }
+        std::sort(degrees.begin(), degrees.end(), [](const std::pair<int , int>a, const std::pair<int ,int>b){
+            return a.second < b.second;
+        });
+        for(std::pair<int,int> node : degrees){
             std::vector<int> sol_ = solution;
-
-
+            auto it = std::find(sol_.begin(), sol_.end(), node.first);
+            if (it != sol_.end()) {
+                sol_.erase(it);
+            }
+            if(!evaluator.isSolution(sol_)){
+                std::optional<std::vector<int>> opt = sol_;
+                sol_ = Guloso(graph.getN(), 0.0, graph, evaluator, opt);
+                if(sol_.size() < newSolution.size() || sol_.size() == newSolution.size() &&  sol_ != newSolution) {
+                    newSolution = sol_;
+                    break;
+                }
+            }
+            
         }
         
-        return std::vector<int>();
+        return newSolution;
     }
 
     std::vector<int> removeFix(Graph &graph, Propagate &evaluator, std::vector<int> solution)
