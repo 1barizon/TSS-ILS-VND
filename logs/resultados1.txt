@@ -4,3 +4,6 @@ football.txt | Best: 23 | Average: 24
 jazz.txt | Best: 22 | Average: 24.4
 socfb-nips-ego.txt | Best: 10 | Average: 10
 socfb-Mich67.txt | Best: 253 | Average: 261.2
+socfb-Brandeis99.txt | Best: 353 | Average: 359.5
+ego-facebook.txt | Best: 560 | Average: 567.9
+ca-GrQc.txt | Best: 931 | Average: 941.1
