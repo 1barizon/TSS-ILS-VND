@@ -1,0 +1,2 @@
+socfb-Brandeis99.txt | Best: 353 | Average: 359.5
+ego-facebook.txt | Best: 560 | Average: 567.9

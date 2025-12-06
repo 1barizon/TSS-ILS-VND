@@ -48,7 +48,6 @@ std::vector<uint8_t> ILS::run()
 	for (int i = 0; i < maxIterations; ++i) {
 		std::vector<uint8_t> shaken = LocalSearch::shake(graph, evaluator, currentSolution, perturbationStrength);
 		std::vector<uint8_t> improved = runVND(shaken);
-		std::cout << getBestCost() << std::endl;
 		int improvedSize = solutionSize(improved);
 		int bestSize = solutionSize(bestSolution);
 		if (evaluator.isSolution(improved) && improvedSize <= bestSize) {
@@ -56,7 +55,6 @@ std::vector<uint8_t> ILS::run()
 			iterWithoutImprove = 0;
 			if (improvedSize < solutionSize(bestOfAll)) {
 				bestOfAll = bestSolution;
-				std::cout << improvedSize << std::endl;
 			}
 		} else {
 			++iterWithoutImprove;

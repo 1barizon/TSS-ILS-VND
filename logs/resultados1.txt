@@ -1,0 +1,6 @@
+karate.txt | Best: 3 | Average: 3
+dolphins.txt | Best: 6 | Average: 6
+football.txt | Best: 23 | Average: 24
+jazz.txt | Best: 22 | Average: 24.4
+socfb-nips-ego.txt | Best: 10 | Average: 10
+socfb-Mich67.txt | Best: 253 | Average: 261.2
