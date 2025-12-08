@@ -7,3 +7,6 @@ socfb-Mich67.txt | Best: 253 | Average: 261.2
 socfb-Brandeis99.txt | Best: 353 | Average: 359.5
 ego-facebook.txt | Best: 560 | Average: 567.9
 ca-GrQc.txt | Best: 931 | Average: 941.1
+ca-HepTh.txt | Best: 1314 | Average: 1323.7
+
+

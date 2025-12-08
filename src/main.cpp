@@ -28,9 +28,9 @@ int main(){
     });
 
     // Create logs directory if it doesn't exist
-    std::filesystem::create_directories("/home/joaobarizon/code/tss-ils-vnd/logs");
+    std::filesystem::create_directories("../logs");
     
-    std::ofstream logFile("/home/joaobarizon/code/tss-ils-vnd/logs/results.txt");
+    std::ofstream logFile("../logs/results.txt");
 
     // Process from smallest to largest graph
     for(auto& [filename, g] : graphs){
